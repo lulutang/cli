@@ -109,23 +109,35 @@ jobs:
   #  Linux → safeskill-linux (x86_64)
   # ─────────────────────────────────────────────
   build-linux:
-    runs-on: ubuntu-22.04   # 旧版系统，glibc 兼容性更好
+    runs-on: ubuntu-latest
+    container:
+      image: centos:7
     steps:
+      - name: Install system deps
+        run: |
+          yum install -y gcc make zlib-devel bzip2-devel openssl-devel \
+            libffi-devel wget xz
+
+      - name: Install Python 3.11
+        run: |
+          cd /tmp
+          wget -q https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tar.xz
+          tar xf Python-3.11.9.tar.xz
+          cd Python-3.11.9
+          ./configure --enable-optimizations --with-ensurepip=install
+          make -j$(nproc)
+          make altinstall
+
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
       - name: Install dependencies
         run: |
-          pip install pyinstaller requests pyyaml
+          python3.11 -m pip install pyinstaller requests pyyaml
 
       - name: Build binary
         run: |
-          pyinstaller \
+          python3.11 -m PyInstaller \
             --onefile \
             --name safeskill \
             --hidden-import safeskill.cli \
