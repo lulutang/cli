@@ -109,7 +109,7 @@ jobs:
   #  Linux → safeskill-linux (x86_64)
   # ─────────────────────────────────────────────
   build-linux:
-    runs-on: ubuntu-20.04   # 旧版系统，glibc 兼容性更好
+    runs-on: ubuntu-22.04   # 旧版系统，glibc 兼容性更好
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
