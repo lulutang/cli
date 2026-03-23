@@ -102,8 +102,7 @@ jobs:
 
   # ─────────────────────────────────────────────
   #  Linux → safeskill-linux
-  #  在 ubuntu-latest 上用 Docker 跑 ubuntu:20.04 容器编译
-  #  glibc 2.31，兼容你的服务器环境
+  #  Docker ubuntu:20.04 编译，rename 也在容器内完成
   # ─────────────────────────────────────────────
   build-linux:
     runs-on: ubuntu-latest
@@ -136,10 +135,8 @@ jobs:
                 --noconfirm \
                 bin/safeskill
               chmod +x dist/safeskill
+              mv dist/safeskill dist/safeskill-linux
             "
-
-      - name: Rename artifact
-        run: mv dist/safeskill dist/safeskill-linux
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -169,7 +166,7 @@ jobs:
             |------|------|------|
             | Windows | `safeskill-windows.exe` | 直接运行，无需安装 |
             | macOS   | `safeskill-macos.dmg`   | 挂载后拷贝到 `/usr/local/bin` |
-            | Linux   | `safeskill-linux`       | `chmod +x` 后运行，兼容 glibc 2.17+ |
+            | Linux   | `safeskill-linux`       | `chmod +x` 后运行，兼容 glibc 2.31+ |
           files: |
             safeskill-windows/safeskill-windows.exe
             safeskill-macos/safeskill-macos.dmg
