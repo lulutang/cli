@@ -133,7 +133,7 @@ jobs:
               wget -q https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tar.xz
               tar xf Python-3.11.9.tar.xz
               cd Python-3.11.9
-              ./configure --enable-optimizations --with-ensurepip=install
+              ./configure --with-ensurepip=install
               make -j\$(nproc)
               make altinstall
               python3.11 -m pip install --upgrade pip -q
