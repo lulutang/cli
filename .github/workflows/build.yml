@@ -81,7 +81,6 @@ jobs:
             --hidden-import safeskill.output \
             --hidden-import yaml \
             --hidden-import requests \
-            --target-arch universal2 \
             --clean \
             --noconfirm \
             bin/safeskill
