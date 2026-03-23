@@ -87,7 +87,7 @@ jobs:
         run: |
           mkdir -p dmg_content
           cp dist/safeskill dmg_content/safeskill
-          echo "SafeSkill CLI v1.1.0\n\n将 safeskill 拖动到 /usr/local/bin/ 即可全局使用。\n\n用法: safeskill --help" > dmg_content/使用说明.txt
+          printf "SafeSkill CLI v1.1.0\n\n将 safeskill 拖动到 /usr/local/bin/ 即可全局使用。\n\n用法: safeskill --help" > dmg_content/使用说明.txt
           hdiutil create \
             -volname "SafeSkill CLI" \
             -srcfolder dmg_content \
@@ -102,23 +102,31 @@ jobs:
 
   # ─────────────────────────────────────────────
   #  Linux → safeskill-linux
-  #  使用 manylinux2014 镜像，glibc 2.17，兼容低版本服务器
+  #  ubuntu-22.04 编译 + staticx 二次打包
+  #  生成真正的静态二进制，兼容 glibc 2.17+
   # ─────────────────────────────────────────────
   build-linux:
-    runs-on: ubuntu-latest
-    container:
-      image: quay.io/pypa/manylinux2014_x86_64
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          /opt/python/cp311-cp311/bin/pip install pyinstaller requests pyyaml
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      - name: Build binary
+      - name: Install system deps
         run: |
-          /opt/python/cp311-cp311/bin/pyinstaller \
+          sudo apt-get update -y
+          sudo apt-get install -y patchelf
+
+      - name: Install Python deps
+        run: pip install pyinstaller requests pyyaml staticx
+
+      - name: Build binary with PyInstaller
+        run: |
+          pyinstaller \
             --onefile \
             --name safeskill \
             --hidden-import safeskill.cli \
@@ -131,8 +139,11 @@ jobs:
             --clean \
             --noconfirm \
             bin/safeskill
-          chmod +x dist/safeskill
-          mv dist/safeskill dist/safeskill-linux
+
+      - name: Repack with staticx (glibc 2.17 compatible)
+        run: |
+          staticx dist/safeskill dist/safeskill-linux
+          chmod +x dist/safeskill-linux
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
