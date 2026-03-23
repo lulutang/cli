@@ -102,7 +102,8 @@ jobs:
 
   # ─────────────────────────────────────────────
   #  Linux → safeskill-linux
-  #  Docker ubuntu:20.04 编译，rename 也在容器内完成
+  #  CentOS 7 容器 + 阿里云镜像源，glibc 2.17
+  #  与目标服务器环境完全一致
   # ─────────────────────────────────────────────
   build-linux:
     runs-on: ubuntu-latest
@@ -110,18 +111,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build inside ubuntu:20.04 Docker container
+      - name: Build inside CentOS 7 container (aliyun mirror)
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/workspace" \
             -w /workspace \
-            ubuntu:20.04 \
+            centos:7 \
             bash -c "
               set -e
-              apt-get update -q
-              apt-get install -y python3 python3-pip binutils
-              pip3 install pyinstaller requests pyyaml
-              pyinstaller \
+
+              # 替换为阿里云镜像源（官方源已下线）
+              sed -i 's|mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-Base.repo
+              sed -i 's|#baseurl=http://mirror.centos.org|baseurl=https://mirrors.aliyun.com|g' /etc/yum.repos.d/CentOS-Base.repo
+
+              # 安装编译依赖
+              yum install -y gcc make zlib-devel bzip2-devel openssl-devel \
+                libffi-devel wget xz
+
+              # 编译安装 Python 3.11
+              cd /tmp
+              wget -q https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tar.xz
+              tar xf Python-3.11.9.tar.xz
+              cd Python-3.11.9
+              ./configure --enable-optimizations --with-ensurepip=install
+              make -j\$(nproc)
+              make altinstall
+              python3.11 -m pip install --upgrade pip -q
+
+              # 回到工作目录安装依赖并打包
+              cd /workspace
+              python3.11 -m pip install pyinstaller requests pyyaml -q
+              python3.11 -m PyInstaller \
                 --onefile \
                 --name safeskill \
                 --hidden-import safeskill.cli \
@@ -166,7 +186,7 @@ jobs:
             |------|------|------|
             | Windows | `safeskill-windows.exe` | 直接运行，无需安装 |
             | macOS   | `safeskill-macos.dmg`   | 挂载后拷贝到 `/usr/local/bin` |
-            | Linux   | `safeskill-linux`       | `chmod +x` 后运行，兼容 glibc 2.31+ |
+            | Linux   | `safeskill-linux`       | `chmod +x` 后运行，兼容 glibc 2.17（CentOS 7+） |
           files: |
             safeskill-windows/safeskill-windows.exe
             safeskill-macos/safeskill-macos.dmg
