@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSkill CLI — 多平台构建 & 使用指南</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #0d0f12;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --border: #252a3a;
+    --accent: #4f8ef7;
+    --accent2: #38d9a9;
+    --accent3: #f7c94f;
+    --danger: #f7604f;
+    --text: #dde3f0;
+    --text-muted: #6b778f;
+    --win: #0078d4;
+    --mac: #a8a9ad;
+    --linux: #f7c94f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0d1526 0%, #0d1a2e 40%, #091420 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 64px 48px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(79,142,247,.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 30%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(56,217,169,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 900px; margin: 0 auto; position: relative; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(79,142,247,.12);
+    border: 1px solid rgba(79,142,247,.3);
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    letter-spacing: .5px;
+  }
+  .hero-badge::before { content: '●'; font-size: 8px; }
+  .hero h1 {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    font-size: 17px;
+    color: #8a96b0;
+    max-width: 560px;
+    margin-bottom: 32px;
+  }
+  .platform-pills { display: flex; gap: 12px; flex-wrap: wrap; }
+  .pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid;
+  }
+  .pill-win  { background: rgba(0,120,212,.12); border-color: rgba(0,120,212,.4); color: #5ab4fc; }
+  .pill-mac  { background: rgba(168,169,173,.1); border-color: rgba(168,169,173,.3); color: #c0c2c8; }
+  .pill-linux{ background: rgba(247,201,79,.1); border-color: rgba(247,201,79,.3); color: #f7c94f; }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 48px 80px; }
+
+  /* ── SECTION ── */
+  .section { margin-top: 56px; }
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #2b6fd4);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 600;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(79,142,247,.3);
+  }
+  .section h2 { font-size: 22px; font-weight: 700; }
+  .section h2 .sub { font-size: 14px; font-weight: 400; color: var(--text-muted); margin-left: 8px; }
+
+  /* ── STEPS ── */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 0 20px;
+    position: relative;
+  }
+  .step:not(:last-child) .step-line {
+    position: absolute; left: 23px; top: 44px; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+  .step-dot {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    color: var(--accent);
+    flex-shrink: 0;
+    position: relative; z-index: 1;
+    margin-top: 8px;
+  }
+  .step-body { padding: 8px 0 36px; }
+  .step-title { font-size: 16px; font-weight: 700; margin-bottom: 10px; color: #eef2ff; }
+  .step-desc { color: #8a96b0; margin-bottom: 14px; font-size: 14px; }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 12px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+  .code-header {
+    background: var(--surface2);
+    padding: 8px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-lang {
+    font-size: 11px; color: var(--text-muted); letter-spacing: .5px; text-transform: uppercase;
+  }
+  .code-dots { display: flex; gap: 6px; }
+  .code-dots span {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .code-dots span:nth-child(1) { background: #f7604f; }
+  .code-dots span:nth-child(2) { background: var(--accent3); }
+  .code-dots span:nth-child(3) { background: var(--accent2); }
+  .code-body { padding: 16px 20px; overflow-x: auto; line-height: 1.8; }
+  .code-body .cmd { color: var(--accent2); }
+  .code-body .comment { color: #4a5568; }
+  .code-body .str { color: var(--accent3); }
+  .code-body .url { color: var(--accent); text-decoration: underline; }
+
+  /* ── IMAGE PLACEHOLDER ── */
+  .img-placeholder {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    height: 180px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 14px 0;
+  }
+  .img-placeholder .icon { font-size: 32px; }
+
+  /* ── SCREEN MOCK ── */
+  .screen {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 14px 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  }
+  .screen-bar {
+    background: #1a1d26;
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .screen-bar .dots { display: flex; gap: 6px; }
+  .screen-bar .dots span { width: 10px; height: 10px; border-radius: 50%; }
+  .screen-bar .dots span:nth-child(1) { background: #f7604f; }
+  .screen-bar .dots span:nth-child(2) { background: var(--accent3); }
+  .screen-bar .dots span:nth-child(3) { background: var(--accent2); }
+  .screen-bar .title-bar { font-size: 12px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+  .screen-content { padding: 16px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.9; }
+  .sc-prompt { color: var(--accent2); }
+  .sc-cmd { color: var(--text); }
+  .sc-out { color: #6b778f; }
+  .sc-success { color: var(--accent2); }
+  .sc-info { color: var(--accent); }
+  .sc-warn { color: var(--accent3); }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+    border: 1px solid;
+  }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout.info  { background: rgba(79,142,247,.08); border-color: rgba(79,142,247,.25); }
+  .callout.warn  { background: rgba(247,201,79,.08); border-color: rgba(247,201,79,.25); }
+  .callout.tip   { background: rgba(56,217,169,.08); border-color: rgba(56,217,169,.25); }
+  .callout.info .callout-icon  { color: var(--accent); }
+  .callout.warn .callout-icon  { color: var(--accent3); }
+  .callout.tip .callout-icon   { color: var(--accent2); }
+
+  /* ── PLATFORM TABS ── */
+  .platform-section { margin: 20px 0; }
+  .ptabs { display: flex; gap: 4px; margin-bottom: 0; }
+  .ptab {
+    padding: 8px 20px;
+    border-radius: 8px 8px 0 0;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    background: var(--surface);
+    color: var(--text-muted);
+    transition: all .2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ptab.active { background: var(--surface2); color: var(--text); border-color: var(--border); }
+  .ptab-win.active  { color: #5ab4fc; border-top: 2px solid var(--win); }
+  .ptab-mac.active  { color: #c0c2c8; border-top: 2px solid var(--mac); }
+  .ptab-linux.active{ color: var(--linux); border-top: 2px solid var(--linux); }
+  .ptab-content {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 0 8px 8px 8px;
+    padding: 20px;
+    display: none;
+  }
+  .ptab-content.active { display: block; }
+
+  /* ── COMMAND REFERENCE TABLE ── */
+  .cmd-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  .cmd-table th {
+    background: var(--surface2);
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .cmd-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(37,42,58,.8);
+    vertical-align: top;
+  }
+  .cmd-table tr:last-child td { border-bottom: none; }
+  .cmd-table tr:hover td { background: rgba(255,255,255,.02); }
+  .cmd-table .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+    background: rgba(56,217,169,.07);
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .cmd-table .desc { color: #8a96b0; font-size: 13px; }
+
+  /* ── RESULT CARD ── */
+  .result-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 16px 0; }
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    border-top: 3px solid;
+  }
+  .result-card.win   { border-top-color: var(--win); }
+  .result-card.mac   { border-top-color: var(--mac); }
+  .result-card.linux { border-top-color: var(--linux); }
+  .result-card .rc-icon { font-size: 24px; margin-bottom: 8px; }
+  .result-card .rc-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .result-card .rc-file {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+    background: rgba(56,217,169,.07);
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 6px;
+  }
+  .result-card .rc-size { font-size: 12px; color: var(--text-muted); }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 60px;
+    padding: 24px 48px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 900px; margin-left: auto; margin-right: auto;
+    font-size: 13px; color: var(--text-muted);
+  }
+
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: rgba(79,142,247,.1);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">v1.1.0 · SafeSkill CLI · QAX Threat Intelligence</div>
+    <h1>多平台构建 &amp; <span>使用指南</span></h1>
+    <p>通过 GitHub Actions 自动编译，无需配置本地环境，一键获得三平台可执行文件。</p>
+    <div class="platform-pills">
+      <div class="pill pill-win">🪟 Windows .exe</div>
+      <div class="pill pill-mac">🍎 macOS .dmg</div>
+      <div class="pill pill-linux">🐧 Linux bin</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ═══ SECTION 1: 上传到 GitHub ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>上传项目到 GitHub <span class="sub">仅需 3 分钟</span></h2>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-dot">1</div>
+        <div class="step-body">
+          <div class="step-title">注册 / 登录 GitHub</div>
+          <div class="step-desc">打开 <a href="https://github.com" target="_blank">https://github.com</a>，登录你的账号。没有账号点 Sign up 注册，填邮箱和密码即可。</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-dot">2</div>
+        <div class="step-body">
+          <div class="step-title">创建新仓库</div>
+          <div class="step-desc">点击右上角 <code>+</code> → <strong>New repository</strong></div>
+          <div class="screen">
+            <div class="screen-bar"><div class="dots"><span></span><span></span><span></span></div><div class="title-bar">github.com · New Repository</div></div>
+            <div class="screen-content">
+              <div>Repository name:  <span style="color:var(--accent2)">safeskill-cli</span></div>
+              <div style="margin-top:6px">Description:      <span style="color:#6b778f">SafeSkill CLI 安全扫描工具</span></div>
+              <div style="margin-top:6px">Visibility:       <span style="color:var(--accent3)">● Public</span>  <span style="color:#4a5568">○ Private</span></div>
+              <div style="margin-top:16px; color:var(--accent2)">✓  [Create repository]</div>
+            </div>
+          </div>
+          <div class="callout info"><div class="callout-icon">ℹ</div><div>Public 和 Private 都可以使用 GitHub Actions 构建，<strong>Public 仓库免费无限制</strong>，Private 仓库每月有 2000 分钟免费额度（够用）。</div></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-dot">3</div>
+        <div class="step-body">
+          <div class="step-title">上传项目文件</div>
+          <div class="step-desc">仓库创建后，点击 <strong>uploading an existing file</strong> 链接</div>
+          <div class="screen">
+            <div class="screen-bar"><div class="dots"><span></span><span></span><span></span></div><div class="title-bar">github.com/you/safeskill-cli</div></div>
+            <div class="screen-content">
+              <div style="color:#4a5568">Quick setup — if you've done this kind of thing before</div>
+              <div style="margin-top:12px">...or you can  <span style="color:var(--accent)">uploading an existing file</span>  ← 点这里</div>
+            </div>
+          </div>
+          <div class="step-desc" style="margin-top:10px">将压缩包 <code>safeskill-cli-v1_1_0.zip</code> 解压后，把所有文件（包括隐藏的 <code>.github</code> 文件夹）拖拽上传：</div>
+          <div class="callout warn"><div class="callout-icon">⚠</div><div>必须包含 <code>.github/workflows/build.yml</code> 文件，这是自动构建的核心配置。上传时选择"显示隐藏文件"确保 <code>.github</code> 文件夹被包含进去。</div></div>
+          <div class="code-block">
+            <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><div class="code-lang">上传文件结构</div></div>
+            <div class="code-body">
+              <div><span class="comment">需要上传的文件结构：</span></div>
+              <div>📁 .github/</div>
+              <div>&nbsp;&nbsp;📁 workflows/</div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;📄 <span class="str">build.yml</span>   ← 必须有</div>
+              <div>📁 safeskill/</div>
+              <div>&nbsp;&nbsp;📄 __init__.py</div>
+              <div>&nbsp;&nbsp;📄 cli.py</div>
+              <div>&nbsp;&nbsp;📄 api.py</div>
+              <div>&nbsp;&nbsp;📄 config.py</div>
+              <div>&nbsp;&nbsp;📄 output.py</div>
+              <div>📁 bin/</div>
+              <div>&nbsp;&nbsp;📄 safeskill</div>
+              <div>📄 setup.py</div>
+              <div>📄 README.md</div>
+            </div>
+          </div>
+          <div class="step-desc">拖拽完成后，填写 Commit message（如：<code>init</code>），点击绿色 <strong>Commit changes</strong> 按钮。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 2: 触发构建 ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>触发自动构建 <span class="sub">两种方式任选其一</span></h2>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-dot">A</div>
+        <div class="step-body">
+          <div class="step-title">方式一：手动触发（推荐新手）</div>
+          <div class="step-desc">进入仓库 → 点击顶部 <strong>Actions</strong> 标签 → 左侧选择 <strong>Build &amp; Release SafeSkill CLI</strong> → 点击 <strong>Run workflow</strong> → 再点绿色 <strong>Run workflow</strong> 确认</div>
+          <div class="screen">
+            <div class="screen-bar"><div class="dots"><span></span><span></span><span></span></div><div class="title-bar">Actions · Build & Release SafeSkill CLI</div></div>
+            <div class="screen-content">
+              <div><span class="sc-info">All workflows</span></div>
+              <div style="margin-top:8px; padding-left:12px; border-left:2px solid var(--accent)">
+                <span style="color:var(--text)">Build &amp; Release SafeSkill CLI</span>
+              </div>
+              <div style="margin-top:16px; text-align:right">
+                <span style="background:var(--accent); color:#fff; padding:6px 14px; border-radius:6px; font-size:12px">Run workflow ▾</span>
+              </div>
+              <div style="margin-top:8px; text-align:right; color:#4a5568; font-size:12px">Branch: main</div>
+              <div style="margin-top:4px; text-align:right">
+                <span style="background:var(--accent2); color:#0a0c10; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600">Run workflow</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-dot">B</div>
+        <div class="step-body">
+          <div class="step-title">方式二：发布 Tag 触发（生成正式 Release）</div>
+          <div class="step-desc">在仓库页面点击 <strong>Releases</strong> → <strong>Create a new release</strong>，填写 Tag 名称（如 <code>v1.1.0</code>）并发布，构建完成后三个文件自动附加到 Release。</div>
+          <div class="screen">
+            <div class="screen-bar"><div class="dots"><span></span><span></span><span></span></div><div class="title-bar">New Release</div></div>
+            <div class="screen-content">
+              <div>Choose a tag:  <span style="color:var(--accent2)">v1.1.0</span>  <span style="color:#4a5568">← 输入新 tag 名</span></div>
+              <div style="margin-top:6px">Target:        <span style="color:var(--accent)">main</span></div>
+              <div style="margin-top:6px">Release title: <span style="color:var(--accent2)">SafeSkill CLI v1.1.0</span></div>
+              <div style="margin-top:16px">
+                <span style="background:#238636; color:#fff; padding:6px 14px; border-radius:6px; font-size:12px">Publish release</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 3: 等待 & 下载 ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>等待构建完成 & 下载 <span class="sub">约 5 ~ 8 分钟</span></h2>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-dot">1</div>
+        <div class="step-body">
+          <div class="step-title">查看构建进度</div>
+          <div class="step-desc">Actions 页面可以看到三个并行任务实时运行</div>
+          <div class="screen">
+            <div class="screen-bar"><div class="dots"><span></span><span></span><span></span></div><div class="title-bar">Actions · Build run #1</div></div>
+            <div class="screen-content">
+              <div><span class="sc-success">●</span> build-windows   <span style="color:#4a5568">2m 34s</span>  <span style="color:var(--accent2)">✓ 完成</span></div>
+              <div style="margin-top:6px"><span style="color:var(--accent3)">●</span> build-macos     <span style="color:#4a5568">3m 12s</span>  <span style="color:var(--accent3)">⟳ 运行中</span></div>
+              <div style="margin-top:6px"><span style="color:var(--accent3)">●</span> build-linux     <span style="color:#4a5568">1m 58s</span>  <span style="color:var(--accent3)">⟳ 运行中</span></div>
+              <div style="margin-top:6px"><span style="color:#4a5568">●</span> release         <span style="color:#4a5568">等待上游完成...</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-dot">2</div>
+        <div class="step-body">
+          <div class="step-title">下载构建产物</div>
+          <div class="step-desc">全部绿色 ✓ 后，有两个地方可以下载：</div>
+
+          <div style="margin-bottom:12px; font-weight:600; font-size:14px; color:#c0c8e0">📦 方式 A：从 Actions Artifacts 下载（手动触发时）</div>
+          <div class="step-desc">点击对应的构建记录 → 页面底部 Artifacts 区域，下载 <code>safeskill-windows</code>、<code>safeskill-macos</code>、<code>safeskill-linux</code></div>
+          <div class="screen">
+            <div class="screen-bar"><div class="dots"><span></span><span></span><span></span></div><div class="title-bar">Build run · Artifacts</div></div>
+            <div class="screen-content">
+              <div style="color:#4a5568; font-size:12px; margin-bottom:10px">Artifacts  Produced during runtime</div>
+              <div>📦 safeskill-windows  <span style="color:#4a5568">12.3 MB</span>  <span style="color:var(--accent); margin-left:8px">⬇ Download</span></div>
+              <div style="margin-top:6px">📦 safeskill-macos    <span style="color:#4a5568">14.8 MB</span>  <span style="color:var(--accent); margin-left:8px">⬇ Download</span></div>
+              <div style="margin-top:6px">📦 safeskill-linux    <span style="color:#4a5568">10.1 MB</span>  <span style="color:var(--accent); margin-left:8px">⬇ Download</span></div>
+            </div>
+          </div>
+
+          <div style="margin: 16px 0 12px; font-weight:600; font-size:14px; color:#c0c8e0">🚀 方式 B：从 Release 下载（Tag 触发时，推荐）</div>
+          <div class="step-desc">仓库页面 → <strong>Releases</strong> → 找到对应版本 → Assets 区域直接下载</div>
+          <div class="result-cards">
+            <div class="result-card win">
+              <div class="rc-icon">🪟</div>
+              <div class="rc-name">Windows</div>
+              <div class="rc-file">safeskill-windows.exe</div>
+              <div class="rc-size">约 12 MB · 免安装</div>
+            </div>
+            <div class="result-card mac">
+              <div class="rc-icon">🍎</div>
+              <div class="rc-name">macOS</div>
+              <div class="rc-file">safeskill-macos.dmg</div>
+              <div class="rc-size">约 15 MB · 含二进制</div>
+            </div>
+            <div class="result-card linux">
+              <div class="rc-icon">🐧</div>
+              <div class="rc-name">Linux</div>
+              <div class="rc-file">safeskill-linux</div>
+              <div class="rc-size">约 10 MB · 单文件</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 4: 各平台安装使用 ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>各平台安装 &amp; 使用方式</h2>
+    </div>
+
+    <div class="platform-section">
+      <!-- Windows -->
+      <div style="margin-bottom:28px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <span style="font-size:20px">🪟</span>
+          <span style="font-size:17px;font-weight:700;color:#5ab4fc">Windows</span>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-line"></div>
+            <div class="step-dot" style="font-size:11px">01</div>
+            <div class="step-body">
+              <div class="step-title">下载 safeskill-windows.exe</div>
+              <div class="step-desc">将文件保存到任意目录，例如 <code>C:\Tools\safeskill.exe</code></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-line"></div>
+            <div class="step-dot" style="font-size:11px">02</div>
+            <div class="step-body">
+              <div class="step-title">（可选）加入系统 PATH</div>
+              <div class="step-desc">将 <code>C:\Tools</code> 加入系统环境变量 Path，之后在任意命令行窗口直接输入 <code>safeskill</code> 即可。</div>
+              <div class="callout tip"><div class="callout-icon">💡</div><div>不加 PATH 也没关系，在 .exe 所在目录打开命令行，用 <code>.\safeskill.exe</code> 运行即可。</div></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="font-size:11px">03</div>
+            <div class="step-body">
+              <div class="step-title">运行</div>
+              <div class="screen">
+                <div class="screen-bar"><div class="dots"><span></span><span></span><span></span></div><div class="title-bar">cmd.exe</div></div>
+                <div class="screen-content">
+                  <div><span class="sc-prompt">C:\Tools&gt;</span> <span class="sc-cmd">safeskill.exe --version</span></div>
+                  <div><span class="sc-out">safeskill 1.1.0</span></div>
+                  <div style="margin-top:8px"><span class="sc-prompt">C:\Tools&gt;</span> <span class="sc-cmd">safeskill.exe login --token YOUR_TOKEN</span></div>
+                  <div><span class="sc-success">✅ Token 已保存</span></div>
+                  <div style="margin-top:8px"><span class="sc-prompt">C:\Tools&gt;</span> <span class="sc-cmd">safeskill.exe scan my-skill.zip</span></div>
+                  <div><span class="sc-info">ℹ  上传文件扫描: my-skill.zip (0.5MB)</span></div>
+                  <div><span class="sc-success">✅ 任务已提交</span></div>
+                  <div><span class="sc-out">  Task ID:  a1b2c3d4e5f6...</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- macOS -->
+      <div style="margin-bottom:28px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <span style="font-size:20px">🍎</span>
+          <span style="font-size:17px;font-weight:700;color:#c0c2c8">macOS</span>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-line"></div>
+            <div class="step-dot" style="font-size:11px">01</div>
+            <div class="step-body">
+              <div class="step-title">下载并挂载 safeskill-macos.dmg</div>
+              <div class="step-desc">双击 .dmg 文件，弹出磁盘映像窗口</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-line"></div>
+            <div class="step-dot" style="font-size:11px">02</div>
+            <div class="step-body">
+              <div class="step-title">将二进制复制到 PATH</div>
+              <div class="code-block">
+                <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><div class="code-lang">Terminal</div></div>
+                <div class="code-body">
+                  <div><span class="comment"># 将 safeskill 复制到系统路径</span></div>
+                  <div><span class="cmd">sudo cp /Volumes/SafeSkill\ CLI/safeskill /usr/local/bin/</span></div>
+                  <div><span class="cmd">sudo chmod +x /usr/local/bin/safeskill</span></div>
+                  <div style="margin-top:8px"><span class="comment"># 如果提示"无法验证开发者"，执行以下命令解除限制</span></div>
+                  <div><span class="cmd">xattr -dr com.apple.quarantine /usr/local/bin/safeskill</span></div>
+                </div>
+              </div>
+              <div class="callout warn"><div class="callout-icon">⚠</div><div>macOS 会对未签名程序弹出安全警告。在系统偏好设置 → 安全性与隐私 → 点击「仍然允许」，或用上面的 <code>xattr</code> 命令一劳永逸。</div></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="font-size:11px">03</div>
+            <div class="step-body">
+              <div class="step-title">运行</div>
+              <div class="screen">
+                <div class="screen-bar"><div class="dots"><span></span><span></span><span></span></div><div class="title-bar">Terminal — zsh</div></div>
+                <div class="screen-content">
+                  <div><span class="sc-prompt">~ $</span> <span class="sc-cmd">safeskill --version</span></div>
+                  <div><span class="sc-out">safeskill 1.1.0</span></div>
+                  <div style="margin-top:8px"><span class="sc-prompt">~ $</span> <span class="sc-cmd">safeskill login --token YOUR_TOKEN</span></div>
+                  <div><span class="sc-success">✅ Token 已保存到 ~/.config/safeskill/config.yaml</span></div>
+                  <div><span class="sc-success">✅ Token 验证通过</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linux -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <span style="font-size:20px">🐧</span>
+          <span style="font-size:17px;font-weight:700;color:var(--linux)">Linux</span>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-line"></div>
+            <div class="step-dot" style="font-size:11px">01</div>
+            <div class="step-body">
+              <div class="step-title">下载 safeskill-linux，赋予执行权限</div>
+              <div class="code-block">
+                <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><div class="code-lang">bash</div></div>
+                <div class="code-body">
+                  <div><span class="cmd">chmod +x safeskill-linux</span></div>
+                  <div><span class="cmd">./safeskill-linux --version</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-line"></div>
+            <div class="step-dot" style="font-size:11px">02</div>
+            <div class="step-body">
+              <div class="step-title">（推荐）安装到系统，全局可用</div>
+              <div class="code-block">
+                <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><div class="code-lang">bash</div></div>
+                <div class="code-body">
+                  <div><span class="cmd">sudo mv safeskill-linux /usr/local/bin/safeskill</span></div>
+                  <div><span class="cmd">safeskill --version</span>  <span class="comment"># 任意目录可用</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="font-size:11px">03</div>
+            <div class="step-body">
+              <div class="step-title">运行</div>
+              <div class="screen">
+                <div class="screen-bar"><div class="dots"><span></span><span></span><span></span></div><div class="title-bar">bash</div></div>
+                <div class="screen-content">
+                  <div><span class="sc-prompt">$</span> <span class="sc-cmd">safeskill --version</span></div>
+                  <div><span class="sc-out">safeskill 1.1.0</span></div>
+                  <div style="margin-top:8px"><span class="sc-prompt">$</span> <span class="sc-cmd">safeskill login --token YOUR_TOKEN</span></div>
+                  <div><span class="sc-success">✅ Token 已保存</span></div>
+                  <div style="margin-top:8px"><span class="sc-prompt">$</span> <span class="sc-cmd">safeskill scan-url https://github.com/owner/repo</span></div>
+                  <div><span class="sc-info">ℹ  投递 URL 扫描: https://github.com/owner/repo</span></div>
+                  <div><span class="sc-success">✅ 任务已提交</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 5: 命令速查 ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>命令速查表</h2>
+    </div>
+    <table class="cmd-table">
+      <thead>
+        <tr>
+          <th>命令</th>
+          <th>说明</th>
+          <th>示例</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="mono">login</span></td>
+          <td class="desc">设置 API Token（首次必须执行）</td>
+          <td><span class="mono">safeskill login --token YOUR_TOKEN</span></td>
+        </tr>
+        <tr>
+          <td><span class="mono">whoami</span></td>
+          <td class="desc">验证 Token 是否有效</td>
+          <td><span class="mono">safeskill whoami</span></td>
+        </tr>
+        <tr>
+          <td><span class="mono">scan</span></td>
+          <td class="desc">上传本地 zip 文件扫描</td>
+          <td><span class="mono">safeskill scan my-skill.zip</span></td>
+        </tr>
+        <tr>
+          <td><span class="mono">scan-url</span></td>
+          <td class="desc">投递 GitHub/URL 扫描</td>
+          <td><span class="mono">safeskill scan-url https://github.com/x/y</span></td>
+        </tr>
+        <tr>
+          <td><span class="mono">report</span></td>
+          <td class="desc">查询扫描报告</td>
+          <td><span class="mono">safeskill report &lt;task_id&gt; --wait</span></td>
+        </tr>
+        <tr>
+          <td><span class="mono">report-batch</span></td>
+          <td class="desc">批量查询多个报告</td>
+          <td><span class="mono">safeskill report-batch id1 id2 id3</span></td>
+        </tr>
+        <tr>
+          <td><span class="mono">judge</span></td>
+          <td class="desc">通过 MD5/SHA1 研判查询</td>
+          <td><span class="mono">safeskill judge --md5 a5d5c01672e...</span></td>
+        </tr>
+        <tr>
+          <td><span class="mono">search</span></td>
+          <td class="desc">按 Skill 名称搜索</td>
+          <td><span class="mono">safeskill search tavily-search</span></td>
+        </tr>
+        <tr>
+          <td><span class="mono">download</span></td>
+          <td class="desc">下载资源包</td>
+          <td><span class="mono">safeskill download --task-id &lt;id&gt;</span></td>
+        </tr>
+        <tr>
+          <td><span class="mono">logout</span></td>
+          <td class="desc">清除已存储的 Token</td>
+          <td><span class="mono">safeskill logout</span></td>
+        </tr>
+        <tr>
+          <td><span class="mono">config set</span></td>
+          <td class="desc">修改配置项</td>
+          <td><span class="mono">safeskill config set output.format json</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip" style="margin-top:16px">
+      <div class="callout-icon">💡</div>
+      <div>
+        <strong>常用参数：</strong><br>
+        <code>--output json</code> 输出 JSON 格式 &nbsp;|&nbsp;
+        <code>--wait</code> 等待扫描完成再返回 &nbsp;|&nbsp;
+        <code>--verbose</code> 显示详细信息 &nbsp;|&nbsp;
+        <code>--no-color</code> 禁用彩色输出（适合日志）
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div>SafeSkill CLI v1.1.0 · QAX Threat Intelligence</div>
+  <div><a href="https://safeskill.qianxin.com/" target="_blank">safeskill.qianxin.com</a></div>
+</div>
+
+</body>
+</html>
